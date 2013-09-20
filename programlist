@@ -1,0 +1,16 @@
+{
+  ["cobble"]={
+    ["GitURL"]="https://raw.github.com/admalledd/computercraft_programs/master/scripts/cobble.lua",
+    ["Version"]=1.0,
+    ["Type"]="program",
+    ["Name"]="cobble farm",
+    ["Description"]="Basic cobbleStone farming turtlebot",
+  },
+  ["mfsu"]={
+    ["GitURL"]="https://raw.github.com/admalledd/computercraft_programs/master/programs/powercon/mfsu.lua",
+    ["Version"]=1.0,
+    ["Type"]="program",
+    ["Name"]="cobble farm",
+    ["Description"]="Basic cobbleStone farming turtlebot",
+  },
+}
