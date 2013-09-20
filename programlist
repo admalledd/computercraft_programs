@@ -10,7 +10,7 @@
     ["GitURL"]="https://raw.github.com/admalledd/computercraft_programs/master/programs/powercon/mfsu.lua",
     ["Version"]=1.0,
     ["Type"]="program",
-    ["Name"]="cobble farm",
-    ["Description"]="Basic cobbleStone farming turtlebot",
+    ["Name"]="mfsu monitor",
+    ["Description"]="powercon: monitor script for MFSUs",
   },
 }
