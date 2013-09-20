@@ -13,4 +13,11 @@
     ["Name"]="mfsu monitor",
     ["Description"]="powercon: monitor script for MFSUs",
   },
+  ["admapi"]={
+    ["GitURL"]="https://raw.github.com/admalledd/computercraft_programs/master/apis/adm_base.lua",
+    ["Version"]=1.0,
+    ["Type"]="api",
+    ["Name"]="adm_base API",
+    ["Description"]="Base API used for many programs here",
+  },
 }

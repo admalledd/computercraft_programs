@@ -50,7 +50,7 @@ x,y = term.getSize()
  
 term.clear()
 printLine("-", 1)
-printC(" Dark Retriever "..tostring(Version).." ", 1, 3)
+printC(" admalledd Retriever "..tostring(Version).." ", 1, 3)
  
 write("-> Grabbing file...")
 cat = getUrlFile("https://raw.github.com/admalledd/computercraft_programs/master/programlist")
