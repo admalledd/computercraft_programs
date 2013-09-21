@@ -1,3 +1,10 @@
+--fname:cobble
+--version:1.01
+--type:program
+--name:cobble Farmer
+--description: right there on the tin...
+
+
 local function checkFuel()
   if turtle.getFuelLevel() < 20 then
     turtle.select(1)

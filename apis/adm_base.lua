@@ -1,3 +1,10 @@
+--fname:admapi
+--version:1.21
+--type:api
+--name:adm_base API
+--description: Base API for most programs here
+
+
 -- base API for all admalledd's programs.
 -- includes mostly just basic functions
 -- again borrowed with permission from http://github.com/darkrising/darkprograms/
@@ -25,7 +32,7 @@ function listPeripheral() -- returns a table of peripherals names, false if noth
     return false
   end
 end
-function listRemotePeripheral(side)-- returns a table of REMOTE peripheral names attached via modem
+function listRemotePeripheral(side)-- returns a table of REMOTE peripherals attached via modem
   -- side is side of modem
   local typers = {}
   for _,s in ipairs(peripheral.call(side,"getNamesRemote")) do
@@ -39,10 +46,20 @@ function listRemotePeripheral(side)-- returns a table of REMOTE peripheral names
     return false
   end
 end
+function listRemotePeripheralNames(side)-- returns a table of REMOTE peripheral names attached via modem
+  -- side is side of modem
+  local names = peripheral.call(side,"getNamesRemote")
+  if #names > 0 then
+    return names
+  else
+    return false
+  end
+end
 function printTable(t)
-  for k,v in ipairs(t) do
-    print(tostring(k)..":"..tostring(v))
-
+  for k,v in pairs(t) do
+    print(k," : ",v)
+  end
+end
 
 function split(str, pattern) -- Splits string by pattern, returns table
   local t = { }
@@ -185,4 +202,89 @@ function drawBox(StartX, lengthX, StartY, lengthY, Text, Color, BkgColor) -- doe
   end
   resetCol(Color, BkgColor)
   return true  
+end
+
+peri={}
+function setPeri(name,p)
+  peri[name]=p
+end
+
+function getEvent()
+    --to be moved to adm_base.lua
+    local event,p1,p2,p3,p4,p5 = os.pullEvent()
+    local t ={ }
+    t.type=event
+    --base events (no mods...)
+    if event == 'char' then
+        t.char=p1
+    elseif event == 'key' then
+        t.key =p1
+    elseif event == 'timer' then
+        t.timer=p1
+    elseif event == 'alarm' then
+        t.alarm=p1
+    elseif event == 'redstone' then
+        --no parms
+    elseif event == 'disk' then
+        t.side=p1
+    elseif event == 'disk_eject' then
+        t.side=p1
+    elseif event == 'peripheral' then
+        t.side=p1
+    elseif event == 'peripheral_detach' then
+        t.side=p1
+    elseif event == 'rednet_message' then
+        t.sender=p1
+        t.msg=p2
+        t.dist=p3
+    elseif event == 'modem_message' then
+        t.side=p1
+        t.freq=p2
+        t.replyFreq=p3
+        t.msg=p4
+        t.dist=p5
+    elseif event == 'http_success' then
+        t.url = p1
+        t.reply = p2
+    elseif event == 'http_failure' then
+        t.url = p1
+    elseif event == 'mouse_click' then
+        t.button=p1
+        t.x=p2
+        t.y=p3
+    elseif event == 'mouse_scroll' then
+        t.direction=p1
+        t.x=p2
+        t.y=p3
+    elseif event == 'mouse_drag' then
+        t.button=p1
+        t.x=p2
+        t.y=p3
+    elseif event == 'monitor_touch' then
+        t.side=p1
+        t.x=p2
+        t.y=p3
+    elseif event == 'monitor_resize' then
+        t.side=p1
+    elseif event == 'turtle_inventory' then
+        t.side=p1
+
+
+    --unofficial / non standard events
+    elseif event == 'energy_measure' then
+        --admapi.printTable(p1)
+        local dtime = os.clock()-peri.meter.startTime
+        peri.meter.startTime = os.clock()
+        local deu = p1.total-peri.meter.lastTotal
+        peri.meter.lastTotal=p1.total
+        --meter.startTime=os.clock()
+        p1.type=event
+        p1.eut=(deu/(dtime*40))
+        t=p1
+
+    else
+        print("unkown event type: "..event)
+        admapi.printTable({p1,p2,p3,p4,p5})
+    end
+    return t
 end
