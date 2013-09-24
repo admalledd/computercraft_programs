@@ -32,30 +32,17 @@ function writeFile(filename, data)
   file.write(data)
   file.close()
 end
+
 if args[1] == 'install' then
     -- we need to install this program (example file does nothing interesting...)
 
     -- get list of programs/apis/ectect 
-    local cat = textutils.unserialize(getUrlFile(proglist))
-    local programs = {}
-    local pname = {}
-    for name,data in pairs(cat) do
-      table.insert(pname, data.Name .." ".. data.Version)
-      table.insert(programs, name)
-    end
-    -- lets now say we need a startup file with certain args, also to load the APIs
-    startup=fs.open('startup','w')
-    local apis = {'admapi','button'}
+    local cat = textutils.unserialize(getUrlFile(args[2]))
+
+    local apis = {'admapi'}
     for i,api in pairs(apis) do
         print("downloading ".. cat[api].Name)
         local program = getUrlFile(cat[api].GitURL)
         writeFile(api,program)
-        --all of these were APIs...
-        --os.loadAPI(api)
-        startup.write("os.loadAPI('"..api.."')\n")
-    end
-    startup.close()
-
-
-    
+    end    
 end

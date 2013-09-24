@@ -1,5 +1,5 @@
 --fname:admapi
---version:1.21
+--version:1.22
 --type:api
 --name:adm_base API
 --description: Base API for most programs here
@@ -8,6 +8,20 @@
 -- base API for all admalledd's programs.
 -- includes mostly just basic functions
 -- again borrowed with permission from http://github.com/darkrising/darkprograms/
+
+
+version=1.22
+
+-- set functions to set API internals (debug stuff, settings, peripherals...)
+peri={}
+function setPeri(name,p)
+  peri[name]=p
+end
+settings={}
+function setSetting(name,val)
+  settings[name]=val
+end
+
 
 
 --Generalised functions
@@ -79,25 +93,64 @@ function split(str, pattern) -- Splits string by pattern, returns table
   end
   return t
 end
+
+--http stuff
 function getPBFile(PBCode, uPath) -- pastebin code of the file, and path to save /turkey
   local PBfile = http.get("http://pastebin.com/raw.php?i="..textutils.urlEncode(PBCode))
   if PBfile then
     local PBfileToWrite = PBfile.readAll()
-      PBfile.close()
+    PBfile.close()
           
-      local file = fs.open( uPath, "w" )
+    local file = fs.open( uPath, "w" )
     file.write(PBfileToWrite)
-      file.close()
+    file.close()
     return true
   else
     return false
   end
 end
+
+function getProgList()
+  if settings.debug then
+    if http.get("http://127.0.0.1:8082/loader.py?/programlist.ltable") then
+      --check for local dev server, if not use phone-home dev server...
+      proglist="http://127.0.0.1:8082/loader.py?/programlist.ltable"
+    else
+      proglist="http://home.admalledd.com:8082/loader.py?/programlist.ltable"
+    end
+  else
+    proglist="https://raw.github.com/admalledd/computercraft_programs/master/programlist.ltable"
+  end
+  local cat = getUrlFile(proglist)
+  cat=textutils.unserialize(cat)
+  return cat
+end
+
+function loadAPI(api)
+  -- tries to load a api, if it cant find it download it. if debugging, redownload and reload
+  if fs.exists(api) == false or settings.debug then
+    gitUpdate(api,api,0)--force download
+    os.unloadAPI(api)--doesnt hurt ever, just nil's out if non-existant
+  end
+  os.loadAPI(api)
+end
+
+
+function getUrlFile(url)
+  local mrHttpFile = http.get(url)
+  --if its failing here, check that the .ltable points to the correct server for dev work...
+  mrHttpFile = mrHttpFile.readAll()
+  return mrHttpFile
+end
+function writeFile(filename, data)
+  local file = fs.open(filename, "w")
+  file.write(data)
+  file.close()
+end
+
 function gitUpdate(ProgramName, Filename, ProgramVersion)
   if http then
-    local getGit = http.get("https://raw.github.com/admalledd/computercraft_programs/master/programlist")
-    local getGit = getGit.readAll()
-    NVersion = textutils.unserialize(getGit)
+    NVersion = getProgList()
     if NVersion[ProgramName].Version > ProgramVersion then
       getGit = http.get(NVersion[ProgramName].GitURL)
       getGit = getGit.readAll()
@@ -204,10 +257,6 @@ function drawBox(StartX, lengthX, StartY, lengthY, Text, Color, BkgColor) -- doe
   return true  
 end
 
-peri={}
-function setPeri(name,p)
-  peri[name]=p
-end
 
 function getEvent()
     --to be moved to adm_base.lua
