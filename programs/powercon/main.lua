@@ -4,8 +4,12 @@
 --name:IC2 Power control
 --description:control/monitor multiple MFSUs
 
-os.loadAPI("admapi")
-os.loadAPI("button")
+--load APIs, (error out soon if not installed)
+os.loadAPI('admapi')
+admapi.loadAPI('button')
+admapi.loadAPI('database')
+
+
 
 stat_mon = peripheral.wrap("right")
 stat_mon.clear()
@@ -35,10 +39,8 @@ for k,peri in ipairs(rem) do
         --an MFSU...
         table.insert(mfsus,peripheral.wrap(peri))
     elseif type == 'energyMeter' then
-        
-        print(peri)
-    elseif type == 'terminal_glasses_bridge' then
-        glasses=peripheral.wrap(peri)
+        meter = peripheral.wrap(peri)
+        admapi.setPeri('meter',meter)
     else
         print("unkown peri: "..type..", at: "..peri)
     end
@@ -51,9 +53,6 @@ end
 --energyMeter_2: to batbank
 --energyMeter_3: to gamma/output
 
-
---admapi.printTable(glasses)
---print(glasses)
 --for k,v in pairs(modem) do print(tostring(k)..":"..tostring(v))end
 
 
