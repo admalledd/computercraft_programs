@@ -10,7 +10,7 @@ template='''
   }},'''
 debug = False
 if debug:
-    urlbase = "http://127.0.0.1:8082/loader.py?"
+    urlbase = "http://home.admalledd.com:8082/loader.py?"
 else:
     urlbase = "https://raw.github.com/admalledd/computercraft_programs/master"
 

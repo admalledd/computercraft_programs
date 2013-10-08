@@ -5,6 +5,13 @@
 --description:control/monitor multiple MFSUs
 
 
+--load APIs, (error out soon if not installed)
+os.loadAPI('admapi')
+admapi.loadAPI('button')
+admapi.loadAPI('database')
+
+
+
 stat_mon = peripheral.wrap("right")
 stat_mon.clear()
 stat_mon.setCursorPos(1,1)
@@ -35,16 +42,11 @@ for k,peri in ipairs(rem) do
     elseif type == 'energyMeter' then
         meter = peripheral.wrap(peri)
         admapi.setPeri('meter',meter)
-    elseif type == 'terminal_glasses_bridge' then
-        glasses=peripheral.wrap(peri)
     else
         print("unkown peri: "..type..", at: "..peri)
     end
 end
 
-
---admapi.printTable(glasses)
---print(glasses)
 --for k,v in pairs(modem) do print(tostring(k)..":"..tostring(v))end
 
 
