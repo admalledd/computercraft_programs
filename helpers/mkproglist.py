@@ -1,4 +1,5 @@
 import fs.osfs
+import sys
 
 template='''
   ["{fname}"]={{
@@ -8,12 +9,17 @@ template='''
     ["Name"]="{name}",
     ["Description"]="{description}",
   }},'''
-debug = False
+
+if len(sys.argv) > 1:
+    debug = False
+else:
+    debug = True
+
 if debug:
-    urlbase = "http://127.0.0.1:8082/loader.py?"
+    urlbase = "http://home.admalledd.com:8082/loader.py?"
 else:
     urlbase = "https://raw.github.com/admalledd/computercraft_programs/master"
-
+print "urlbase:::%s"%urlbase
 format_vars=('fname','version','type','name','description')
 
 progs = []

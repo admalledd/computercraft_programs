@@ -1,5 +1,5 @@
 --fname:admapi
---version:1.22
+--version:1.23
 --type:api
 --name:adm_base API
 --description: Base API for most programs here
@@ -322,13 +322,18 @@ function getEvent()
     --unofficial / non standard events
     elseif event == 'energy_measure' then
         --admapi.printTable(p1)
-        local dtime = os.clock()-peri.meter.startTime
-        peri.meter.startTime = os.clock()
-        local deu = p1.total-peri.meter.lastTotal
-        peri.meter.lastTotal=p1.total
+        p1.getEUT=function ( meter )
+          if p1.eut == nil then            
+            local dtime = os.clock()-meter.startTime
+            meter.startTime = os.clock()
+            local deu = p1.total-meter.lastTotal
+            meter.lastTotal=p1.total
+            p1.eut=(deu/(dtime*40))
+          end
+          return p1.eut
+        end
         --meter.startTime=os.clock()
         p1.type=event
-        p1.eut=(deu/(dtime*40))
         t=p1
 
     else

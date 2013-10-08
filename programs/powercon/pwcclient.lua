@@ -84,14 +84,3 @@ while true do
         end
     end
 end
-
-
-if admapi.split(event.msg,':')[1] == 'restarted' then
-    local outputs={}
-    for k,btn in pairs(buttons) do
-        --print(btn.text ..":"..tostring(btn.enabled))
-        outputs[btn.text] = btn.enabled
-    end
-    
-    modem.transmit(event.replyFreq,modem_channel,textutils.serialize(outputs))
-end

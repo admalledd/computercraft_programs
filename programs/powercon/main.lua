@@ -4,6 +4,8 @@
 --name:IC2 Power control
 --description:control/monitor multiple MFSUs
 
+os.loadAPI("admapi")
+os.loadAPI("button")
 
 stat_mon = peripheral.wrap("right")
 stat_mon.clear()
@@ -33,14 +35,21 @@ for k,peri in ipairs(rem) do
         --an MFSU...
         table.insert(mfsus,peripheral.wrap(peri))
     elseif type == 'energyMeter' then
-        meter = peripheral.wrap(peri)
-        admapi.setPeri('meter',meter)
+        
+        print(peri)
     elseif type == 'terminal_glasses_bridge' then
         glasses=peripheral.wrap(peri)
     else
         print("unkown peri: "..type..", at: "..peri)
     end
 end
+
+--set up the multiple EU meters, manual due to reasons
+--EDIT: mutliple meters a pain, use independant CPU's per, using rednet... numbers still work though
+
+--energyMeter_1: to massfab
+--energyMeter_2: to batbank
+--energyMeter_3: to gamma/output
 
 
 --admapi.printTable(glasses)
@@ -60,19 +69,10 @@ end
 button.setMonitor(menu_mon)
 --b = button.new("Click me!", callback, xMin, xMax, yMin, yMax)
 buttons={
-    button.new("Quary", callback, 5, 17, 4, 7),
-    button.new("Crafting", callback, 5, 17, 9, 12),
-    button.new("Scrap",callback,5,17,14,17),
-    button.new("Cobble",callback,5,17,19,22),
-    button.new("Filler",callback,5,17,24,27)
+    button.new("massfab", callback, 5, 17, 4, 7),
+    button.new("quarries", callback, 5, 17, 9, 12)
 }
 
---reset the meter, just in case...
-meter.stop()
-os.sleep(0.01)
-meter.start()
-meter.startTime=os.clock()
-meter.lastTotal=0
 
 timers = {fast = os.startTimer(1), quarter = os.startTimer(15),
           half = os.startTimer(15) ,minute=os.startTimer(60)}
@@ -89,8 +89,16 @@ function getEU()
     local totalEU=0
     for k,v in ipairs(mfsus) do
         totalEU=totalEU+v.getStored()
-        writeLine(k+2,"mfsu " .. k .. " at " .. v.getStored() .. " EU")
+        --writeLine(k+2,"mfsu " .. k .. " at " .. v.getStored() .. " EU")
     end
+    --max measured EU::: 2759995528, 
+    --minus the buffer delta?
+    if totalEU < 2759995528-10000000 then
+        redstone.setOutput("bottom",true)
+    else
+        redstone.setOutput("bottom",false)
+    end
+
     return totalEU
     --writeLine(1,"total EU stored: " .. totalEU .. " EU")
 end
@@ -111,21 +119,19 @@ function main()
         if event.type == "monitor_touch" then
             button.doClick(event)
         elseif event.type == 'energy_measure' then
-            writeLine(2,"EU/t : "..tostring(event.eut))
+            admapi.printTable(event)
+            --writeLine(2,"EU/t : "..tostring(event.getEUT(meter)))
         elseif event.type == 'timer' then
             if event.timer == timers.fast then
-                timers.fast = os.startTimer(1)
+                timers.fast = os.startTimer(3)
                 writeLine(1,"Total EU storage: ".. tostring(getEU()))
             elseif event.timer == timers.quarter then
                 timers.quarter = os.startTimer(15)
+                
             elseif event.timer == timers.half then
                 timers.half = os.startTimer(30)
             elseif event.timer == timers.minute then
                 timers.minute = os.startTimer(60)
-                --restart the meter to prevent too large a rolling average
-                meter.stop()
-                os.sleep(0.01)
-                meter.start()
             else 
                 --unknown timer?
                 print("unknown TimerID: "..tostring(event.timer))
@@ -137,8 +143,11 @@ function main()
                     --print(btn.text ..":"..tostring(btn.enabled))
                     outputs[btn.text] = btn.enabled
                 end
-                
                 modem.transmit(event.replyFreq,modem_channel,textutils.serialize(outputs))
+            elseif admapi.split(event.msg,':')[1] == 'EUT' then
+                local eudata = admapi.split(event.msg,':')
+                --"EUT:$Meter:eu/t"
+                writeLine(tonumber(eudata[2])+1,eudata[3])
             end
         elseif event.type == 'char' then
             if event.char == 'q' then

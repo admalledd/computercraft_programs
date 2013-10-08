@@ -16,6 +16,7 @@ import __main__ #for webfiles
 mimetypes={
     '.js':'application/javascript',
     '.css':'text/css',
+    '.txt':'text/plain',
     '.lua':'text/plain',
     '.ltable':'text/plain'
 

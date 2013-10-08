@@ -4,10 +4,10 @@
 --name:debugger
 --description:downloads latest and runs
 
-fname="getprog"
-prog="getprog_beta.lua"
+fname="hvcalc"
+prog="scripts/HV_calc.lua"
 
-url="http://127.0.0.1:8082/loader.py?/"..prog
+url="http://home.admalledd.com:8082/loader.py?/"..prog
 
 function getUrlFile(url)
   local mrHttpFile = http.get(url)
