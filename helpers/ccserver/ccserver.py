@@ -14,6 +14,7 @@ server meaning less github pushes while testing.
 import md5
 import urllib
 import urllib2
+import urlparse
 import uuid
 import xml.dom.minidom
 
@@ -135,10 +136,13 @@ class MyHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         self.posting=True
+        self.path_args=None
         try:
             if '?' in self.path:
                 #we have some url parsing to do, split that other stuff into raw data...
-                self.path,self.path_args = self.path.split('?',1)
+                parsed=urlparse.urlparse(self.path)
+                self.path_args=urlparse.parse_qs(parsed.query,keep_blank_values=True)
+                self.path= parsed.path
                 ##todo: parse the args down even more into usable data chunks. ignore for now
             
             if self.path.endswith('.py') and self.is_webfile(): #python dynamic code?

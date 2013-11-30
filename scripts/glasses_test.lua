@@ -57,6 +57,7 @@ while true do
         print("rebooting TGI")
         p.clear()
         shell.run("debug")
+        return exit
     else
         set_response('unknown command:"'..p1..'"')
     end

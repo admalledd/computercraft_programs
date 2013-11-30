@@ -4,8 +4,8 @@
 --name:debugger
 --description:downloads latest and runs
 
-fname="hvcalc"
-prog="scripts/HV_calc.lua"
+fname="mehelper"
+prog="programs/ME/main.lua"
 
 url="http://home.admalledd.com:8082/loader.py?/"..prog
 
