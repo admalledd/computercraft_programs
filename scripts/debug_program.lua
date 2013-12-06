@@ -4,8 +4,8 @@
 --name:debugger
 --description:downloads latest and runs
 
-fname="mehelper"
-prog="programs/ME/main.lua"
+fname="dhd"
+prog="programs/mystcraft/main.lua"
 
 url="http://home.admalledd.com:8082/loader.py?/"..prog
 
