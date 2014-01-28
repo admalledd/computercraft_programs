@@ -1,0 +1,2 @@
+os.loadAPI("admapi")
+shell.run("main.lua")

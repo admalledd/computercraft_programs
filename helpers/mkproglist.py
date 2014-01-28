@@ -24,7 +24,7 @@ format_vars=('fname','version','type','name','description')
 
 progs = []
 project_base = fs.osfs.OSFS('../')
-for path in project_base.walkfiles(wildcard="*.lua"):
+for path in project_base.walkfiles(wildcard="*.getprog.lua"):
     if path == '/getprog.lua': continue
     print "parsing '%s' ..."%path
     with project_base.open(path,'r') as f:

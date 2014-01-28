@@ -4,8 +4,8 @@
 --name:debugger
 --description:downloads latest and runs
 
-fname="dhd"
-prog="programs/mystcraft/main.lua"
+fname="installer"
+prog="programs/powercon/installer.getprog.lua"
 
 url="http://home.admalledd.com:8082/loader.py?/"..prog
 
@@ -22,4 +22,4 @@ end
 print("getting latest of: "..prog)
 writeFile(fname,getUrlFile(url))
 print("saved as: "..fname)
-shell.run(fname)
+shell.run(fname.." install ".."http://home.admalledd.com:8082/loader.py?/programlist.ltable")

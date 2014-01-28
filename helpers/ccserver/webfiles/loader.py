@@ -18,14 +18,15 @@ mimetypes={
     '.css':'text/css',
     '.txt':'text/plain',
     '.lua':'text/plain',
-    '.ltable':'text/plain'
+    '.ltable':'text/plain',
+    '':'text/plain'
 
 }
 def main(self):
     print "got loader.py call for %s::%s"%(self.path,self.path_args)
 
     if os.path.splitext(self.path_args)[1] not in mimetypes:
-        self.send_error(404,'File Not supported by loader.py: %s ::: %s' % (self.path_args,os.path.splitext(self.path_args)[1]))
+        self.send_error(404,'File Not supported by loader.py: "%s" ::: "%s"' % (self.path_args,os.path.splitext(self.path_args)[1]))
         return
     #ok, first thing we do is check for a real file from the self.path_args
     if not __main__.project_base.exists(self.path_args):

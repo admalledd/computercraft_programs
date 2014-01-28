@@ -1,5 +1,5 @@
 --fname:admapi
---version:1.23
+--version:1.25
 --type:api
 --name:adm_base API
 --description: Base API for most programs here
@@ -73,6 +73,44 @@ function printTable(t)
   for k,v in pairs(t) do
     print(k," : ",v)
   end
+end
+
+function dump(tbl)
+    local function serializeImpl( t, tTracking )    
+        local sType = type(t)
+        if sType == "table" then
+            if tTracking[t] ~= nil then
+                --removed thanks to AE dup'ing tables and names when same items with different NBT are side by side
+                --error( "Cannot serialize table with recursive entries" )
+            end
+            tTracking[t] = true
+            local result = "{"
+            for k,v in pairs(t) do
+                result = result..("["..serializeImpl(k, tTracking).."]="..serializeImpl(v, tTracking)..",")
+            end
+            result = result.."}\n"
+            return result
+            
+        elseif sType == "string" then
+            return string.format( "%q", t )
+        
+        elseif sType == "number" or sType == "boolean" or sType == "nil" then
+            return tostring(t)
+            
+        else
+            return "@"..sType
+            --pass to allow dumping of anything...
+            --error( "Cannot serialize type "..sType )
+            
+        end
+    end
+
+    local function serialize( t )
+        local tTracking = {}
+        return serializeImpl( t, tTracking )
+    end
+    --debug helper. POST tbl to server to have it recursivly dumped and parsed, good for large tables
+    http.post("http://home.admalledd.com:8082/puts.py?type=table&query=dump",serialize(tbl))
 end
 
 function split(str, pattern) -- Splits string by pattern, returns table
