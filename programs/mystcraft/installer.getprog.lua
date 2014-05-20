@@ -85,7 +85,7 @@ if args[1] == 'install' then
         local program = getUrlFile(cat[api].GitURL)
         writeFile(api,program)
     end
-    local files = {'startup','main'}
+    local files = {'startup','main.lua'}
     for i,f in pairs(files) do
       print("downloading file "..f)
       local fi = getUrlFile(urlbase.."programs/mystcraft/"..f)

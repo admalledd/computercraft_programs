@@ -14,7 +14,6 @@ if len(sys.argv) > 1:
     debug = False
 else:
     debug = True
-debug = True
 if debug:
     urlbase = "http://home.admalledd.com:8082/loader.py?"
 else:

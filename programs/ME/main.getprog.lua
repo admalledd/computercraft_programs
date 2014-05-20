@@ -59,6 +59,17 @@ bridge.clear()
 modem = peripheral.wrap("back")
 modem.open(1024) -- listening channel for main ME system
 
+for k,peri in ipairs(peripheral.call("back","getNamesRemote")) do
+    local type=peripheral.getType(peri)
+    if type == "tile_block_fluid_terminal" then
+        print('found fluid terminal at: "',peri,'"')
+        -- this is a chest with a nearby book receptacle
+        fluidTerminal=peripheral.wrap(peri)
+    else
+        print("unkown peri: "..type..", at: "..peri)
+    end
+end
+
 
 
 -- we have a single table holding all the variables we "need", this is so that we can simply dump/restore it between sessions
@@ -100,7 +111,8 @@ local function serializeImpl( t, tTracking )
         return tostring(t)
         
     else
-        error( "Cannot serialize type "..sType )
+        return "@:"..sType
+        --error( "Cannot serialize type "..sType )
         
     end
 end
@@ -139,15 +151,18 @@ function search_local(name)
     return ret
 end
 
-txt = bridge.addText(5, 25, "minecraft GLASS", 0xFFFFFF)
+
 box = bridge.addBox(0,20,180,100, 0x003366,0.75)
+txt = bridge.addText(5, 25, "minecraft GLASS", 0xFFFFFF)
+
+--http.request("http://home.admalledd.com:8082/puts.py?type=table&query=dump",serialize(txt))
 
 txt.setScale(2)
-box.setZIndex(0)
-txt.setZIndex(1)
+--box.setZIndex(0)
+--txt.setZIndex(1)
 
 status = bridge.addText(5,45,"Null status", 0xFFFFFF)
-status.setZIndex(1)
+--status.setZIndex(1)
 status.setScale(0.5)
 
 responses={}
@@ -157,7 +172,7 @@ table.insert(responses,bridge.addText(5,65,"Null response2", 0xFFFFFF))
 table.insert(responses,bridge.addText(5,75,"Null response3", 0xFFFFFF))
 for k,v in pairs(responses) do
     v.setScale(0.8)
-    v.setZIndex(1)
+    --v.setZIndex(1)
 end
 
 
@@ -172,8 +187,8 @@ table.insert(power_meters,{bridge.addText(5,98,"Plasma", 0xFF9900),
                          bridge.addText(60,98,"#######", 0xFF9900)
                     })
 for k,v in pairs(power_meters) do
-    v[1].setZIndex(1)
-    v[2].setZIndex(1)
+    --v[1].setZIndex(1)
+    --v[2].setZIndex(1)
 end
 
 function set_status(text)
@@ -276,6 +291,9 @@ end
 timers = {fast = os.startTimer(1), quarter = os.startTimer(15),
           half = os.startTimer(15) ,minute=os.startTimer(15)}
 
+http.post("http://home.admalledd.com:8082/puts.py?type=table&query=dump",serialize(fluidTerminal.getAdvancedMethodsData()))
+http.post("http://home.admalledd.com:8082/puts.py?type=table&query=dump",serialize(fluidTerminal.getAllStacks()))
+
 while true do 
     event=getEvent()
     if event.type == "chat_command" then
@@ -342,7 +360,7 @@ while true do
             timers.half = os.startTimer(30)
         elseif event.timer == timers.minute then
             timers.minute = os.startTimer(60)
-            http_post("puts.py?type=table&query=dump",serialize(variables))
+            --http_post("puts.py?type=table&query=dump",serialize(variables))
         else 
             --unknown timer?
             print("unknown TimerID: "..tostring(event.timer))

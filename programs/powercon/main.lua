@@ -131,7 +131,7 @@ function main()
             end
         elseif event.type == 'timer' then
             if event.timer == timers.fast then
-                timers.fast = os.startTimer(1)
+                timers.fast = os.startTimer(5)
                 transmit_counters()
             elseif event.timer == timers.quarter then
                 timers.quarter = os.startTimer(15)

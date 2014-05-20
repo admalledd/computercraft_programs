@@ -4,8 +4,8 @@
 --name:debugger
 --description:downloads latest and runs
 
-fname="installer"
-prog="programs/powercon/installer.getprog.lua"
+fname="script"
+prog="getprog2.lua"
 
 url="http://home.admalledd.com:8082/loader.py?/"..prog
 

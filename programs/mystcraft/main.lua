@@ -10,7 +10,7 @@ peripherals:
     top: monitor
     left: modem hooked up to diamond chests filled with linking books (peripheral proxies)
 edit vars:
-    CDIRECTION: direction chest is relative to book receptical
+    CDIRECTION: direction chest is relative to book receptacle
 
 NOTE:: V1 of MystGate only handles 12 books! (will ignore/crash with any more than that!)
 ]]
@@ -22,18 +22,62 @@ monitor=peripheral.wrap("top") --an advanced monitor, size 6x5
 
 --modem for a network on the left of the computer
 chests={}
+receptacles={}
 for k,peri in ipairs(peripheral.call("left","getNamesRemote")) do
     --print(peri," : ",peripheral.getType(peri))
     local type=peripheral.getType(peri)
     if type == "diamond" then
-        -- this is a chest with a nearby book receptical
+        print('found chest at: "',peri,'"')
+        -- this is a chest with a nearby book receptacle
         table.insert(chests,peripheral.wrap(peri))
+    elseif type == "book_receptacle" then
+        print('found receptacle at: "',peri,'"')
+        table.insert(receptacles,peripheral.wrap(peri))
+    else
+        print("unkown peri: "..type..", at: "..peri)
     end
 end
 
+local function serializeImpl( t, tTracking )    
+    local sType = type(t)
+    if sType == "table" then
+        if tTracking[t] ~= nil then
+            --removed thanks to AE dup'ing tables and names when same items with different NBT are side by side
+            --error( "Cannot serialize table with recursive entries" )
+        end
+        tTracking[t] = true
+        local result = "{"
+        for k,v in pairs(t) do
+            result = result..("["..serializeImpl(k, tTracking).."]="..serializeImpl(v, tTracking)..",")
+        end
+        result = result.."}\n"
+        return result
+        
+    elseif sType == "string" then
+        return string.format( "%q", t )
+    
+    elseif sType == "number" or sType == "boolean" or sType == "nil" then
+        return tostring(t)
+        
+    else
+        return "@:"..sType
+        --error( "Cannot serialize type "..sType )
+        
+    end
+end
+
+function serialize( t )
+    local tTracking = {}
+    return serializeImpl( t, tTracking )
+end
+
+http.request("http://home.admalledd.com:8082/puts.py?type=table&query=dump",serialize(receptacles[1].getAllStacks()))
+
 --CONSTANTS:::
---chest direction, direction to pull/push items into the book receptical
+--chest direction, direction to pull/push items into the book receptacle
 CDIRECTION="west"
+--receptacle direction, direction to push/pull items to chests
+RDIRECTION="east"
 
 
 --GLOBAL VARS:::
@@ -66,6 +110,7 @@ function reindex()
     -- re-index the bookdb
     close_portal() --close to make sure we have all ze books
     bookdb={}
+    print('indexing...')
     for index,chest in pairs(chests) do
         --ONLY one of a set destination!
         for slot,itemstack in pairs(chest.getAllStacks()) do
@@ -74,6 +119,7 @@ function reindex()
                     -- already exists in the DB, error out! abort abort! rename!
                     error("duplicated destination name found: "..slot.." dst:"..itemstack['destination'])
                 end
+
                 table.insert(bookdb,{chest,slot,itemstack['destination']})
             end
         end
@@ -94,8 +140,13 @@ end
 
 function close_portal() 
     for index,chest in pairs(chests) do
-        --print(index," : ",chest)
-        chest.pullItem(CDIRECTION,1,64)--64 just because, max reasons
+        m=chest.pullItem(RDIRECTION,1)
+        if m > 0 then
+            print('moved item!')
+        else
+            print('moved ',m,' items')
+        end
+        --os.sleep(1)
     end
     print("portal closed")
 end
@@ -104,7 +155,7 @@ function open_portal(dst)
 
     -- close the portal first, no matter what
     close_portal()
-    dst[1].pushItem("west",dst[2],1)
+    dst[1].pushItem(CDIRECTION,dst[2],1)
     print("portal opened to '"..dst[3].."'")
     menu.cur.text=dst[3]
     menu.cur:enable()
@@ -214,9 +265,7 @@ function main()
             if event.char == 'q' then
                 error("quit requested")
             elseif event.char == 'r' then
-                for k,btn in pairs(buttons) do
-                    print(btn.text ..":"..tostring(btn.enabled))
-                end
+                callback_close_portal("asdf")
             end
         end
     end
