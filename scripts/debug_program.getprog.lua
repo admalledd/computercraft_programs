@@ -4,7 +4,7 @@
 --name:debugger
 --description:downloads latest and runs
 
-fname="script"
+fname="getprog"
 prog="getprog2.lua"
 
 url="http://home.admalledd.com:8082/loader.py?/"..prog
@@ -22,4 +22,5 @@ end
 print("getting latest of: "..prog)
 writeFile(fname,getUrlFile(url))
 print("saved as: "..fname)
-shell.run(fname.." install ".."http://home.admalledd.com:8082/loader.py?/programlist.ltable")
+--shell.run(fname.." install ".."http://home.admalledd.com:8082/loader.py?/programlist.ltable")
+shell.run(fname)

@@ -5,33 +5,60 @@
 --description: Main getprogram code, autoupdates
 
 
---[[
-get https://raw.github.com/admalledd/computercraft_programs/master/getprog.version
-
-just a plain text file that can be tonumber()'d
-
-
-]]
 if not http then
   print("Herp derp, forget to enable http?")
   return exit
 end
 
-version = 2.5
+--CONSTANTS: (change here if you want to make your own getprog tool chain...)
 
-print("checking for update...")
-cur_ver= http.get("https://raw.github.com/admalledd/computercraft_programs/master/getprog.version")
-if cur_ver ~= nil then
-    --get was good
-    cur_ver = tonumber(cur_ver.readAll())
-    if cur_ver > version then
-        print("update available...")
-        local data = http.get("https://raw.github.com/admalledd/computercraft_programs/master/getprog.lua").readAll()
-        local f = fs.open("getprog","w")
-        f.write(data)
-        f.close()
-        shell.run("getprog")
-        return exit
+--S_LOC: root URI for where to find getprog compatible files
+S_LOC="https://raw.github.com/admalledd/computercraft_programs/master/"
+--V_LOC: name of the version file (concat'd to S_LOC)
+V_LOC="getprog.version"
+--P_LOC: name of the program file itself (concat'd to S_LOC)
+P_LOC="getprog2.lua"
+--P_DISK: computer-craft name of the program (should be simple and easy to type!)
+P_DISK="getprog" 
+
+
+
+function should_update()
+    --[[
+    return true if "update" required
+    checks for what the current version on disk is (if not found, return "true")
+    calls to the github version file
+    compares dirtily via == that they match, if not return "true" (any non-match means update required)
+    ]]
+    print("checking for update...")
+    local v_remote = get_url_file(S_LOC..V_LOC)
+    local v_local  = os.open(V_LOC,"r")
+    if v_local == nil then
+        return true --no local version file, time to check for an update!
     end
-else
-    print("error checking for update, ignored.")
+    v_local = v_local.readAll()
+    if v_local == v_remote then
+        return false
+    else
+        return true
+    end
+end
+
+function get_url_file(url)
+    local mrHttpFile = http.get(url)
+    mrHttpFile = mrHttpFile.readAll()
+    return mrHttpFile
+end
+
+function write_file(fname,data)
+    -- simply write out a file.
+    local f = os.open(fname,"w")
+    f.write(data)
+    f.close()
+end
+
+
+if should_update() then
+    print("out of date getprog, downloading the new one now...")
+    write_file(P_DISK,get_url_file(S_LOC..P_LOC))
+end
