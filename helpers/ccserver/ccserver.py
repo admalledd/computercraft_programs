@@ -16,7 +16,7 @@ import urllib
 import urllib2
 import urlparse
 import uuid
-import xml.dom.minidom
+#import xml.dom.minidom
 
 from SocketServer import ThreadingMixIn
 
@@ -41,6 +41,9 @@ except:
 import fs.osfs
 webfiles = fs.osfs.OSFS(os.path.join(os.getcwd(),'webfiles'))
 project_base=fs.osfs.OSFS(os.path.join(os.getcwd(),'..','..'))
+
+import client_link
+
 class MyHandler(BaseHTTPRequestHandler):
     def send_html_header(self):
         '''send the most common header: the html headers. done here in case we want to change the normal headers at any time.
@@ -96,13 +99,10 @@ class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.posting = False
         try:
-            if '?' in self.path:
-                #we have some url parsing to do, split that other stuff into raw data...
-                self.path,self.path_args = self.path.split('?',1)
-                ##todo: parse the args down even more into usable data chunks. ignore for now
-            else:
-                self.path_args=''
-                
+            parsed = urlparse.urlparse(self.path)
+            self.path_args = urlparse.parse_qs(parsed.query,keep_blank_values=True)
+            self.query = parsed.query #raw query, useful for loader.py
+            self.path = parsed.path
             if self.path.endswith('/'): #handle index of a directory with this
                 
                 #check for index.py, then try index.html, if none work, 404
@@ -138,12 +138,10 @@ class MyHandler(BaseHTTPRequestHandler):
         self.posting=True
         self.path_args=None
         try:
-            if '?' in self.path:
-                #we have some url parsing to do, split that other stuff into raw data...
-                parsed=urlparse.urlparse(self.path)
-                self.path_args=urlparse.parse_qs(parsed.query,keep_blank_values=True)
-                self.path= parsed.path
-                ##todo: parse the args down even more into usable data chunks. ignore for now
+            #if '?' in self.path:
+            parsed=urlparse.urlparse(self.path)
+            self.path_args=urlparse.parse_qs(parsed.query,keep_blank_values=True)
+            self.path= parsed.path
             
             if self.path.endswith('.py') and self.is_webfile(): #python dynamic code?
                 self.pyfile()
@@ -158,8 +156,9 @@ class MyHandler(BaseHTTPRequestHandler):
 PORT = 8082
 welcome='''\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 httpserver started on port: %i
+cl-server started on port: %i
 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-''' % (PORT)
+''' % (PORT,PORT+1)
 
 class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
     # Overrides SocketServer.ThreadingMixIn.daemon_threads
@@ -169,6 +168,7 @@ class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
 
 def main():
     server = ThreadingHTTPServer(('', PORT), MyHandler)
+    cl_server = client_link.start(('', PORT+1))
     print welcome
     server.serve_forever()
 if __name__ == '__main__':

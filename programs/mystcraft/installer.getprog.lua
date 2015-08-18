@@ -1,4 +1,4 @@
---fname:install
+--fname:mg_install
 --version:1.01
 --type:installer
 --name:mystGate

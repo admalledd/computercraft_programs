@@ -9,15 +9,12 @@ template='''
     ["Name"]="{name}",
     ["Description"]="{description}",
   }},'''
-
+print len(sys.argv),sys.argv
 if len(sys.argv) > 1:
-    debug = False
-else:
-    debug = True
-if debug:
-    urlbase = "http://home.admalledd.com:8082/loader.py?"
-else:
     urlbase = "https://raw.github.com/admalledd/computercraft_programs/master"
+else:
+    urlbase = "http://localhost:8082/clinker.py?user=admalledd&req=get_file&file="
+
 print "urlbase:::%s"%urlbase
 format_vars=('fname','version','type','name','description')
 
@@ -45,4 +42,4 @@ for p in progs:
     prog_list.append(template.format(**p))
 
 with project_base.open("programlist.ltable",'w') as f:
-    f.write('''{\n%s\n}'''%''.join(prog_list))
+    f.write(u'''{\n%s\n}'''%''.join(prog_list))
