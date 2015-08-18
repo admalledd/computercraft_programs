@@ -29,7 +29,7 @@ Handlers that would be a good idea (tm):
 # "evnt" (client) Server is requesting resource/higher level processing. See "evnt" desc bellow.
 
 
-import socket
+import socket,threading
 import sys
 import struct
 import json
@@ -74,6 +74,7 @@ class cl_net(object):
         self.HOST,self.PORT = host,port
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.slock = threading.Lock()
 
     @staticmethod
     def make_packet(action,data):
@@ -94,25 +95,40 @@ class cl_net(object):
         header=struct.pack('I',len(data))+action.encode('ascii')
         return header+data.encode('ascii')
 
+    def write_sock(self,bytes):
+        with self.slock:
+            self.sock.sendall(bytes)
+
     def run_forever(self):
         self.connect()
         try:
             self.serve_forever()
         finally:
+            print "client link closing"
             self.close()
 
     def connect(self):
         self.sock.connect((self.HOST,self.PORT))
 
         #send handshake/auth
-        self.sock.sendall("cdv-0.0.1develop")
-        self.sock.sendall(self.UID)
+        self.write_sock("cdv-0.0.1develop"+self.UID)
+
+        #startup ping thread
+        self.ping_thread = threading.Thread(target=self.ping_keep_alive)
+        self.ping_thread.setDaemon(True)
+        self.ping_thread.start()
+
+    def ping_keep_alive(self):
+        import time
+        loop_count = 0
+        while True:
+            time.sleep(20)
+            self.write_sock(self.make_packet('ping',{"count":loop_count}))
+            loop_count += 1
 
     def serve_forever(self):
         while True:
             self.handle_one()
-        #self.sock.sendall(make_packet("ping",{1:2,"foo":"bar","baz":[1,2,3,"string"]}))
-        #print repr(self.sock.recv(1024))
 
     def handle_one(self):
 
@@ -144,18 +160,20 @@ class cl_net(object):
             return
         elif short_func == b'ping':
             pong = self.make_packet("pong",jdata)
-            self.sock.sendall(pong)
+            self.write_sock(pong)
+            return
+        elif short_func == b'pong':
+            #print "pong returned, loop data: %r" % jdata
             return
         elif short_func == b'evnt':
             #all higher-level function stuff is via "event" stuff here
             self.run_packet(jdata)
             return
-
         # if we get here, unkown short func!
-        print "Unkown short_func from OID '%r': '%s'"%(self.OID, short_func)
+        print "Unkown short_func: '%s'"%short_func
 
     def close(self):
-        self.sock.sendall(self.make_packet("dcon",{}))
+        self.write_sock(self.make_packet("dcon",{}))
         self.sock.close()
 
     def run_packet(self, event):
@@ -173,7 +191,7 @@ class cl_net(object):
                 "event_id": event['event_id']
             }
             resp = self.make_packet('evnt',rdata)
-            self.sock.sendall(resp)
+            self.write_sock(resp)
 
 
 if __name__ == '__main__':

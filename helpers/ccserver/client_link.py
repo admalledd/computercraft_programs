@@ -10,7 +10,7 @@ Idea is:
 
 """
 
-import SocketServer
+import SocketServer,socket
 import struct
 import string
 import json
@@ -21,6 +21,7 @@ import traceback
 import Queue
 import random
 import sys
+import time
 
 net_cons={}
 
@@ -34,18 +35,26 @@ class con_handler(SocketServer.BaseRequestHandler):
         self.request = request
         self.client_address = client_address
         self.server = server
-        
+        self.slock = threading.Lock()
+
         try:
             self.setup()
             self.handle()
             self.finish()
         except Exception:
             self.finnish_ex()
-            if self.OID != None:
-                print 'removed connection from user "%s"' % self.OID
-                net_cons[self.OID]=None
         finally:
-            pass
+            if self.OID != None:
+                print 'a connection from OID %r closed' % self.OID
+                #if we are the current netobj, clear ourselves out of there.
+                if net_cons[self.OID] == self:
+                    net_cons[self.OID]=None
+
+    def write_sock(self,bytes):
+        'Protect parallel writes to the socket, only one "packet" at a time'
+        with self.slock:
+            self.request.sendall(bytes)
+
     def setup(self):
         '''
         create queue's and get the OID. place handler in users
@@ -74,20 +83,22 @@ class con_handler(SocketServer.BaseRequestHandler):
         self.user_name = OID_map[[oid for uname,oid in OID_map].index(self.OID)][0]
 
         #set timeout for network latency
-        #self.request.settimeout(10)
+        self.request.settimeout(10)
         self.run_handler=True
-        
+
+        self.last_ping_time = time.time()
+
         if self.OID in net_cons:
             print "new connection for %r is already connected, overwriting old with new" % self.user_name
             try:
-                nobj = net_cons[self.OID]
-                del net_cons[self.OID]
-                nobj.close()
+                net_cons[self.OID].close()
+                net_cons[self.OID] = None
             except Exception, e:
                 print "small error during clean up of old connection, ignoring: %s" % e
+                traceback.print_exc()
             net_cons[self.OID] = self
         else:
-            print "new netobj object being created for '%r'" % self.user_name
+            print "new netobj object being created for %r" % self.user_name
             net_cons[self.OID] = self
 
         print "user '%s' is now connected via %r." % (self.user_name, self.request.getpeername())
@@ -99,7 +110,19 @@ class con_handler(SocketServer.BaseRequestHandler):
 
     def handle(self):
         while self.run_handler:
-            self.handle_one()
+            try:
+                self.handle_one()
+            except socket.timeout:
+                #check if ping is horrible:
+                delta = time.time() - self.last_ping_time
+                if delta > 30:
+                    print "warning: user %s client link is slow to respond! delta:%s" %(self.user_name,delta)
+                if delta > 60:
+                    print "warning: user %s did not ping in time! disconnecting! delta:%s"%(self.user_name,delta)
+                    break
+            except Exception as e:
+                print "handle_one() error for user %s:" % self.user_name
+                traceback.print_exc()
         self.close()
 
     def handle_one(self):
@@ -130,8 +153,9 @@ class con_handler(SocketServer.BaseRequestHandler):
             self.close()
             return
         elif short_func == b'ping':
+            self.last_ping_time = time.time()
             pong = self.make_packet("pong",jdata)
-            self.request.sendall(pong)
+            self.write_sock(pong)
             return
         elif short_func == b'evnt':
             #all higher-level function stuff is via "event" stuff here
@@ -217,9 +241,14 @@ class UserHandler(object):
         return event
 
     def send_data(self, data):
+
+        #check we have a connection
+        if self.OID not in net_cons or net_cons[self.OID] is None:
+            raise Exception("User is not connected")
+
         #Send down the wire
         pckt = net_cons[self.OID].make_packet("evnt",data)
-        net_cons[self.OID].request.sendall(pckt)
+        net_cons[self.OID].write_sock(pckt)
 
     def get_file(self, path):
         '''
