@@ -48,7 +48,7 @@ UID = ";Yh|_~,2"
 #UID = "{[1yQ+@@"
 
 #Directory where CLink files should be retrieved from, Defaults to project directory
-BASE_FILE_PATH = os.path.realpath(os.path.join(os.getcwd(),'..','..'))
+BASE_FILE_PATH = os.path.realpath(os.path.join(os.getcwd(),'..','..','cc_code'))
 
 def is_subdir(path, directory):
     path = os.path.realpath(path)
