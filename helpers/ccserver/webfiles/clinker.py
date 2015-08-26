@@ -51,4 +51,5 @@ def main(self):
         self.send_header('Content-type',"text/plain")
         self.end_headers()
         return
-
+    else:
+        return self.send_error(404, "no request type handler found!")

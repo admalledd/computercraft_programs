@@ -7,7 +7,7 @@
 fname="getprog"
 prog="getprog2.lua"
 
-url="http://home.admalledd.com:8082/loader.py?/"..prog
+url="http://localhost:8082/clinker.py?user=admalledd&req=get_file&file="..prog
 
 function getUrlFile(url)
   local mrHttpFile = http.get(url)
