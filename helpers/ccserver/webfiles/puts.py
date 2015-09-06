@@ -4,6 +4,10 @@ import urlparse
 
 def main(self):
     '''returns all data posted to the file, good way to check what the server thinks it is getting'''
+
+    #loader disabled (unless on local dev where you comment out this next line)
+    return self.send_error(404,"puts.py is disabled")
+
     if self.path_args == None:
         self.send_response(400)
     else:

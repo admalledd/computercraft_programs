@@ -28,6 +28,7 @@ import os
 import pprint
 import traceback
 
+import ConfigParser
 
 try:
     import magic #acess lib magic for MIME types
@@ -37,11 +38,21 @@ except:
     import mimetypes
     mimer = None #set to make sure that nothing fails with other code, test for "if mimer:... else:...."
 
+config = ConfigParser.ConfigParser({'ccdir':os.path.dirname(os.path.abspath(__file__))})
+
+#later files over-write. User config should be last.
+config.read((
+    os.path.join(os.path.dirname(os.path.abspath(__file__)),'config.ini'), #local Config
+    "/opt/ccserver/config.ini", #sys config
+    os.path.join(os.path.expanduser("~"),'.ccserver.cfg') #user config, should contain USER secret tokens
+    ))
+
 #note that fs is from python filesystem (easy_install fs), I only have it installed on pypy
 import fs.osfs
-webfiles = fs.osfs.OSFS(os.path.join(os.getcwd(),'webfiles'))
-project_base=fs.osfs.OSFS(os.path.join(os.getcwd(),'..','..'))
+webfiles = fs.osfs.OSFS(config.get('ccserver','webfiles'))
+project_base=fs.osfs.OSFS(config.get('ccserver','project_base'))
 
+#import after config setup
 import client_link
 
 class MyHandler(BaseHTTPRequestHandler):
@@ -153,12 +164,12 @@ class MyHandler(BaseHTTPRequestHandler):
             
         #fell through, unable to POST
         self.send_error(404, 'File Not Found POST error: %s'%self.path)
-PORT = 8082
+
 welcome='''\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 httpserver started on port: %i
 cl-server started on port: %i
 \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-''' % (PORT,PORT+1)
+'''
 
 class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
     # Overrides SocketServer.ThreadingMixIn.daemon_threads
@@ -167,9 +178,9 @@ class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
     allow_reuse_address = True
 
 def main():
-    server = ThreadingHTTPServer(('', PORT), MyHandler)
-    cl_server = client_link.start(('', PORT+1))
-    print welcome
+    server = ThreadingHTTPServer((config.get('ccserver','host'), config.getint('ccserver','HTTP_Port')), MyHandler)
+    cl_server = client_link.start((config.get('ccserver','host'), config.getint('ccserver','CLINK_Port')))
+    print welcome % (config.getint('ccserver','HTTP_Port'), config.getint('ccserver','CLINK_Port'))
     server.serve_forever()
 if __name__ == '__main__':
     main()

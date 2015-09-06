@@ -16,9 +16,7 @@ def main(self):
     if 'user' not in self.path_args:
         return self.send_error(403, 'no user specified!')
 
-    unames = [uname for uname,oid in client_link.OID_map]
-
-    if self.path_args['user'][0] not in unames:
+    if self.path_args['user'][0] not in client_link.user_handlers:
         return self.send_error(403, 'user not found!')
 
     user_handler = client_link.user_handlers[self.path_args['user'][0]]

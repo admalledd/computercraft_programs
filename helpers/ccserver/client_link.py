@@ -6,7 +6,7 @@ Idea is:
 
 * CC getprog/debug.lua request something like "$CCSERVER/clink.py?user=$FOO&req=$BAR"
 * $CCSERVER finds client-linked user by name/ID "FOO" and handles request
-* DevLink has persistant connection to $CCSERVER (and "authenticates" UID/pain text password)
+* DevLink has persistent connection to $CCSERVER (and "authenticates" UID/pain text password)
 
 """
 
@@ -24,8 +24,6 @@ import sys
 import time
 
 net_cons={}
-
-
 
 class con_handler(SocketServer.BaseRequestHandler):
     '''handle a reconnecting object, put new descriptor in the relevent connection dict,
@@ -91,8 +89,9 @@ class con_handler(SocketServer.BaseRequestHandler):
         if self.OID in net_cons:
             print "new connection for %r is already connected, overwriting old with new" % self.user_name
             try:
-                net_cons[self.OID].close()
-                net_cons[self.OID] = None
+                if net_cons[self.OID] != None:
+                    net_cons[self.OID].close()
+                    net_cons[self.OID] = None
             except Exception, e:
                 print "small error during clean up of old connection, ignoring: %s" % e
                 traceback.print_exc()
@@ -266,10 +265,12 @@ class UserHandler(object):
 
 
 user_handlers = {}
-OID_map = (
-    ('admalledd',';Yh|_~,2'),
-    ('torsmash','{[1yQ+@@')
-)
+OID_map = []
+
+for var, val in sys.modules['__main__'].config.items("Clink_Users"):
+    if len(val) == 8:
+        print "loading new user/OID mapping for CLINK: (%s,%r)"%(var,val)
+        OID_map.append((var,val))
 
 server=None
 server_thread=None

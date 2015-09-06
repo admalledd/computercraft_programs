@@ -23,17 +23,17 @@ mimetypes={
 
 }
 def main(self):
+    #loader disabled (unless on local dev where you comment out this next line)
+    return self.send_error(404,"loader.py is disabled")
+
     print "got loader.py call for %s::%s"%(self.path,self.path_args)
 
     if os.path.splitext(self.path_args)[1] not in mimetypes:
-        self.send_error(404,'File Not supported by loader.py: "%s" ::: "%s"' % (self.path_args,os.path.splitext(self.path_args)[1]))
-        return
+        return self.send_error(404,'File Not supported by loader.py: "%s" ::: "%s"' % (self.path_args,os.path.splitext(self.path_args)[1]))
     #ok, first thing we do is check for a real file from the self.path_args
     if not __main__.project_base.exists(self.path_args):
-        self.send_error(404,'File Not Found: %s' % self.path_args)
-        return
-    
-    
+        return self.send_error(404,'File Not Found: %s' % self.path_args)
+
     mime = mimetypes[os.path.splitext(self.path_args)[1]]
     #send headers
     self.send_response(200)
