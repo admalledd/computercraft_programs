@@ -1,23 +1,20 @@
 
 -- based on http://pastebin.com/N22T449A# edited with permission for my own uses
 
+--curver @ http://pastebin.com/7aT0cNxZ
+
 Version = 2.01
 args = { ... }
+
+--NOTE: hack-patched to support CLINK api for now (until getprog2 is complete...)
 
 if not http then
   print("Herp derp, forget to enable http?")
   return exit
 end
-if args[1] == "d" then
-  if http.get("http://127.0.0.1:8082/loader.py?/programlist.ltable") then
-    --check for local dev server, if not use phone-home dev server...
-    proglist="http://127.0.0.1:8082/loader.py?/programlist.ltable"
-  else
-    proglist="http://home.admalledd.com:8082/loader.py?/programlist.ltable"
-  end
-else
-  proglist="https://raw.github.com/admalledd/computercraft_programs/master/programlist.ltable"
-end
+
+proglist="http://localhost:8082/clinker.py?user=admalledd&req=get_file&file=/programlist.ltable"
+
 x,y = term.getSize()
 index = 1
 

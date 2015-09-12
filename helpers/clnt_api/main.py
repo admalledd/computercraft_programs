@@ -36,9 +36,9 @@ import json
 import string
 import os,os.path
 import pprint
+import time
 
-
-HOST, PORT = "localhost", 8083
+HOST, PORT = "mc.admalledd.com", 8083
 
 #provided by API hoster, is semi-secure key
 # generated via 
@@ -139,19 +139,32 @@ class cl_net(object):
         for ch in short_func:
             if ch not in string.ascii_letters:
                 raise Exception('received bad call function, must be ascii_letters. got:"%s"'%short_func)
-        ##read data in 1024 byte chunks, but once under, use actual size
-        ##TODO: rate limit the input, as is we read more and more data till we run out of ram. we need a max packet size and handler
-        if content_len >1024:
-            tcon = content_len
-            data = []
-            while tcon > 1024:
-                data.append(self.sock.recv(1024))
-                tcon = tcon-1024
-            data.append(self.sock.recv(tcon))
-            data = ''.join(data)
-        else:
-            data = self.sock.recv(content_len)
+
+        def read_chunky(chk_len):
+            'read semi-chunked content, allows for retrying better-ish'
+            ##read data in 4096 byte chunks, but once under, use actual size
+            ##TODO: rate limit the input, as is we read more and more data till we run out of ram. we need a max packet size and handler
+            if chk_len >4096:
+                tcon = chk_len
+                data = []
+                while tcon > 4096:
+                    data.append(self.sock.recv(4096))
+                    tcon = tcon-4096
+                    #time.sleep(0.01)
+                data.append(self.sock.recv(tcon))
+                data = ''.join(data)
+            else:
+                data = self.sock.recv(chk_len)    
+            return data
+        
+        data = ''
+        while len(data) != content_len:
+            #print "length delta: %d ::: %d"%(content_len,len(data))    
+            data += read_chunky(content_len - len(data))
+
         data=data.decode("UTF-8")
+        
+        #pprint.pprint(data)
         jdata=json.loads(data)#must always have json data, of none/invalid let loads die
 
         if short_func == b'dcon':
