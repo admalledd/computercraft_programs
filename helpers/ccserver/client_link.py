@@ -141,13 +141,13 @@ class con_handler(SocketServer.BaseRequestHandler):
                 tcon = chk_len
                 data = []
                 while tcon > 4096:
-                    data.append(self.sock.recv(4096))
+                    data.append(self.request.recv(4096))
                     tcon = tcon-4096
                     #time.sleep(0.01)
-                data.append(self.sock.recv(tcon))
+                data.append(self.request.recv(tcon))
                 data = ''.join(data)
             else:
-                data = self.sock.recv(chk_len)    
+                data = self.request.recv(chk_len)    
             return data
         
         data = ''
