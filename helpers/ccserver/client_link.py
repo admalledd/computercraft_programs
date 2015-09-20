@@ -108,6 +108,7 @@ class con_handler(SocketServer.BaseRequestHandler):
         self.request.close()#and if the handler is still open, this kills it with socket errors
 
     def handle(self):
+        self.recv_tries=0
         while self.run_handler:
             try:
                 self.handle_one()
@@ -126,13 +127,23 @@ class con_handler(SocketServer.BaseRequestHandler):
 
     def handle_one(self):
         header = self.request.recv(8)
+        if len(header) != 8:
+            #did not get a full read, something is going wrong probably. only try so many times
+            self.recv_tries += 1
+            if self.recv_tries > 10:
+                #give up on this connection
+                self.run_handler = False
+            #return to try again after a stall
+            time.sleep(0.25)
+            return
+
         content_len = struct.unpack('I',header[:4])[0]
         #see description above for header layout
         short_func = header[4:].decode("ascii")
         for ch in short_func:
             if ch not in string.ascii_letters:
                 raise Exception('received bad call function, must be ascii_letters. got:"%s"'%short_func)
-        
+
         def read_chunky(chk_len):
             'read semi-chunked content, allows for retrying better-ish'
             ##read data in 4096 byte chunks, but once under, use actual size
@@ -149,7 +160,7 @@ class con_handler(SocketServer.BaseRequestHandler):
             else:
                 data = self.request.recv(chk_len)    
             return data
-        
+
         data = ''
         while len(data) != content_len:
             #print "length delta: %d ::: %d"%(content_len,len(data))    
@@ -157,6 +168,9 @@ class con_handler(SocketServer.BaseRequestHandler):
 
         data=data.decode("UTF-8")
         jdata=json.loads(data)#must always have json data, of none/invalid let loads die
+
+        #if we get here, assume decent enough packeting to reset recv counter
+        self.recv_tries = 0
 
         if short_func == b'dcon':
             #dcon==disconnect request, do not pass up the layers, we handle that elsewhere...
