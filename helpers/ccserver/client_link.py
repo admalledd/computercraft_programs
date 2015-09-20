@@ -283,21 +283,40 @@ for var, val in sys.modules['__main__'].config.items("Clink_Users"):
         print "loading new user/OID mapping for CLINK: (%s,%r)"%(var,val)
         OID_map.append((var,val))
 
+
+class V6Server(SocketServer.ThreadingTCPServer):
+    address_family = socket.AF_INET6
+
 server=None
 server_thread=None
-def start(netface):
+server6=None
+server6_thread=None
+def start(port):
     global server
     global server_thread
-    def run_server():
+    global server6
+    global server6_thread
+    import __main__
+
+    def run_server(srv):
         try:
-            server.serve_forever()
+            srv.serve_forever()
         finally:
-            server.server.close()
+            srv.server.close()
+
     for uname, oid in OID_map:
         user_handlers[uname] = UserHandler(oid,uname)
 
-    server=SocketServer.ThreadingTCPServer(netface, con_handler)
+    server=SocketServer.ThreadingTCPServer(('0.0.0.0',port), con_handler, False)
+    __main__.HTTPServerV6.ipv6fixup(server)
     server.daemon_threads = True
-    server_thread = threading.Thread(target=run_server)
+    server_thread = threading.Thread(target=run_server,args=(server,))
     server_thread.setDaemon(True)
     server_thread.start()
+
+    server6=V6Server(('::',port), con_handler, False)
+    __main__.HTTPServerV6.ipv6fixup(server6)
+    server6.daemon_threads = True
+    server6_thread = threading.Thread(target=run_server,args=(server6,))
+    server6_thread.setDaemon(True)
+    server6_thread.start()

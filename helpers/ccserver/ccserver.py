@@ -19,8 +19,9 @@ import uuid
 #import xml.dom.minidom
 
 from SocketServer import ThreadingMixIn
-
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+import socket,threading
+
 import imp
 import cgi
 import os
@@ -177,9 +178,38 @@ class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
     # Overrides BaseHTTPServer.HTTPServer.allow_reuse_address
     allow_reuse_address = True
 
+class HTTPServerV6(ThreadingHTTPServer):
+    address_family = socket.AF_INET6
+    allow_reuse_address = True
+
+    def run_server_in_thread(self):
+        def _run_server():
+            try:
+                self.serve_forever()
+            finally:
+                self.server.close()
+        server_thread = threading.Thread(target=_run_server)
+        server_thread.setDaemon(True)
+        server_thread.start()
+    @staticmethod
+    def ipv6fixup(srv):
+        "Call just after creating your srv object to fix some ipv6 stuff..."
+        #some wizardry to make socket dual-sock ipv4 and ipv6 work
+        print "Fixing up srv hosting on %s for ipv4+ipv6 dual stack" % (srv.server_address,)
+        srv.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if srv.address_family == socket.AF_INET6:
+            srv.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 1)
+        srv.server_bind()
+        srv.server_activate()
+
 def main():
-    server = ThreadingHTTPServer((config.get('ccserver','host'), config.getint('ccserver','HTTP_Port')), MyHandler)
-    cl_server = client_link.start((config.get('ccserver','host'), config.getint('ccserver','CLINK_Port')))
+    server = ThreadingHTTPServer(('0.0.0.0', config.getint('ccserver','HTTP_Port')), MyHandler, False)
+    HTTPServerV6.ipv6fixup(server)
+    server6 = HTTPServerV6(('::', config.getint('ccserver','HTTP_Port')), MyHandler, False)
+    HTTPServerV6.ipv6fixup(server6)
+    server6.run_server_in_thread()
+
+    client_link.start(config.getint('ccserver','CLINK_Port'))
     print welcome % (config.getint('ccserver','HTTP_Port'), config.getint('ccserver','CLINK_Port'))
     server.serve_forever()
 if __name__ == '__main__':
