@@ -40,7 +40,7 @@ class con_handler(SocketServer.BaseRequestHandler):
             self.handle()
             self.finish()
         except Exception:
-            self.finnish_ex()
+            self.finish_ex()
         finally:
             if self.OID != None:
                 print 'a connection from OID %r closed' % self.OID
@@ -208,10 +208,10 @@ class con_handler(SocketServer.BaseRequestHandler):
         header=struct.pack('I',len(data))+action.encode('ascii')
         return header+data.encode('ascii')
 
-    def finnish(self):
+    def finish(self):
         print 'OBJECT %s requested connection closed.'%self.OID
 
-    def finnish_ex(self):
+    def finish_ex(self):
         buff=sio()
         traceback.print_exc(file=buff)
         if self.OID is not None:
