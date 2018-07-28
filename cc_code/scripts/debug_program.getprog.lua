@@ -4,8 +4,8 @@
 --name:debugger
 --description:downloads latest and runs
 
-fname="test_ae2"
-prog="/scripts/test_ae2.lua"
+fname="getprog"
+prog="/getprog.lua"
 
 url="http://localhost:8082/clinker.py?user=admalledd&req=get_file&file="..prog
 

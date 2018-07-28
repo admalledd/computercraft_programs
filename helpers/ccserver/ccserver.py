@@ -106,6 +106,7 @@ class MyHandler(BaseHTTPRequestHandler):
         
         '''
         if path == None: path=self.path #allow calls using self.is_webfile(path) or use self.path
+        if isinstance(path, bytes): path = path.decode('utf-8') #fixup bytes vs str ish
         return webfiles.exists(path)
         
     def do_GET(self):
