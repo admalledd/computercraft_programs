@@ -1,0 +1,8 @@
+{
+    "files":{
+        "main.lua" : "main.lua",
+        "settings.lua" : "settings.lua",
+        "swarm_http.lua" : "new_http.lua"
+    },
+    "entry" : "main.lua"
+}

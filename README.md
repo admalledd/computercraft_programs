@@ -1,3 +1,16 @@
+computercraft_swarm
+===================
+
+based upon inspiration from https://github.com/ottomated/turtle-gambit/ (thanks!)
+but because I am a C# dev, use that for server-side stuffs
+also the goal here is more about swarm turtle playground-stuff vs other
+so there is a extra ForgeMod required that adds a "get actual position" helper for the turtles.
+
+
+
+OLD NOTES FOLLOW:
+=================
+
 computercraft_programs
 ======================
 
