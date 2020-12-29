@@ -22,6 +22,10 @@ namespace server_v2.WebSockets
                 throw new KeyNotFoundException($"Socket by ID '{id}' not found");
             }
         }
+        public bool TryGetSocketById(string id, out WebSocket socket)
+        {
+            return _sockets.TryGetValue(id, out socket);
+        }
 
         public string GetId(WebSocket socket)
         {

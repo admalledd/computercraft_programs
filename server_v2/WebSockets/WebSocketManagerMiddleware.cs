@@ -19,11 +19,12 @@ namespace server_v2.WebSockets
     {
         private readonly RequestDelegate _next;
         private WebSocketHandler _webSocketHandler { get; set; }
-
-        public WebSocketManagerMiddleware(RequestDelegate next, WebSocketHandler webSocketHandler)
+        private ILogger logger;
+        public WebSocketManagerMiddleware(RequestDelegate next, ILogger<WebSocketManagerMiddleware> _logger, WebSocketHandler webSocketHandler)
         {
             _next = next;
             _webSocketHandler = webSocketHandler;
+            logger = _logger;
         }
 
         public async Task Invoke(HttpContext context)
@@ -32,23 +33,30 @@ namespace server_v2.WebSockets
                 return;
 
             var socket = await context.WebSockets.AcceptWebSocketAsync();
-            await _webSocketHandler.OnConnected(socket);
-
-            await Receive(socket, async(result, buffer) =>
+            try
             {
-                if(result.MessageType == WebSocketMessageType.Text)
-                {
-                    await _webSocketHandler.ReceiveAsync(socket, result, buffer);
-                    return;
-                }
+                await _webSocketHandler.OnConnected(socket);
 
-                else if(result.MessageType == WebSocketMessageType.Close)
+                await Receive(socket, async(result, buffer) =>
                 {
-                    await _webSocketHandler.OnDisconnected(socket);
-                    return;
-                }
+                    if(result.MessageType == WebSocketMessageType.Text)
+                    {
+                        await _webSocketHandler.ReceiveAsync(socket, result, buffer);
+                        return;
+                    }
 
-            });
+                    else if(result.MessageType == WebSocketMessageType.Close)
+                    {
+                        await _webSocketHandler.OnDisconnected(socket);
+                        return;
+                    }
+
+                });   
+            }
+            catch (System.Net.WebSockets.WebSocketException ex)
+            {
+                logger.LogDebug($"Websocket terminated abnormally", ex);
+            }
         }
 
         private async Task Receive(WebSocket socket, Action<WebSocketReceiveResult, byte[]> handleMessage)
@@ -71,10 +79,11 @@ namespace server_v2.WebSockets
         {
             return app.Map(path, (_app) => _app.UseMiddleware<WebSocketManagerMiddleware>(handler));
         }
-        public static IApplicationBuilder MapWebSocketManager<WebSocketHandler>(
+        public static IApplicationBuilder MapWebSocketManager<TWebSocketHandler>(
             this IApplicationBuilder app, PathString path)
+            where TWebSocketHandler : WebSocketHandler
         {
-            return app.Map(path, (_app) => _app.UseMiddleware<WebSocketManagerMiddleware>(_app.ApplicationServices.GetService<WebSocketHandler>()));
+            return app.Map(path, (_app) => _app.UseMiddleware<WebSocketManagerMiddleware>(_app.ApplicationServices.GetService<TWebSocketHandler>()));
         }
 
         public static IServiceCollection AddWebSocketManager(this IServiceCollection services)

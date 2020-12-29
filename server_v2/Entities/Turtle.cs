@@ -9,6 +9,7 @@ namespace server_v2.Entities
     {
         [Key]
         public string TurtleKey {get;set;}
+        //This was a horrible idea I think, remove WebSocketID/GUID flat-out from DB, bleh...
         public string TurtleCurrentWSGuid {get;set;}
 
         public long Loc_X {get;set;}

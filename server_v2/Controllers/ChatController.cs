@@ -14,11 +14,13 @@ namespace server_v2.Controllers
     {
         private readonly IHubContext<Hubs.ChatHub, Hubs.Clients.IChatClient> chatHub;
         private readonly Hubs.RawWSHub wsHub;
+        private readonly IServiceProvider serviceProvider;
 
-        public ChatController(IHubContext<Hubs.ChatHub, Hubs.Clients.IChatClient> _chatHub, Hubs.RawWSHub _wsHub)
+        public ChatController(IHubContext<Hubs.ChatHub, Hubs.Clients.IChatClient> _chatHub, Hubs.RawWSHub _wsHub, IServiceProvider _serviceProvider)
         {
             chatHub = _chatHub;
             wsHub = _wsHub;
+            serviceProvider = _serviceProvider;
         }
 
         [HttpPost("messages")]
@@ -27,6 +29,15 @@ namespace server_v2.Controllers
             // run some logic...
             await wsHub.SendMessageToAllAsync(message.Message);
             await chatHub.Clients.All.ReceiveMessage(message);
+        }
+
+        [HttpPost("helloworld")]
+        public async Task HelloWorld(string bleh)
+        {
+            foreach (var tb in wsHub.GetConnectedBrains())
+            {
+                await Turtle.LuaCommand.Enqueue<Turtle.TurtleInitCommand>(serviceProvider, tb);
+            }
         }
     }
 }

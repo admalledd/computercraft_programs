@@ -19,6 +19,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Embed any of our in-place LUA files for simplicity of serving: -->
+    <EmbeddedResource Include="Turtle\**\*.lua">
+      <!-- eventually https://github.com/dotnet/msbuild/pull/5824 will be with us and fix problems... -->
+      <Culture />
+      <WithCulture>false</WithCulture>
+    </EmbeddedResource>
+    <!-- <EmbeddedResource Include="Turtle\TurtleInitCommand.cs.lua" /> -->
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Don't publish the SPA source files, but do show them in the project files list -->
     <Content Remove="$(SpaRoot)**" />
     <None Remove="$(SpaRoot)**" />

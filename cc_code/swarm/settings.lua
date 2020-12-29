@@ -21,16 +21,16 @@ function readSettings()
     module = createSettingsNode(raw_settings, 'root')
 end
 function writeSettings()
-    --print('SETTINGS: saving changes to disk...')
+    print('SETTINGS: saving changes to disk...')
     local f = fs.open('/settings.json','w')
     if next(module) == nil then 
         error('next() thinks settings are empty! hrm, this probably means a bugged createSettingsNode or child table?')
     end
-    if module.reloadSettings ~= nil then module.reloadSettings = nil end
+    --if module.reloadSettings ~= nil then module.reloadSettings = nil end
     local txt = textutils.serializeJSON(module)
     --print(txt)
     f.write(txt)
-    rawset(module, 'reloadSettings',readSettings)
+    --rawset(module, 'reloadSettings',readSettings)
     f.close()
 end
 

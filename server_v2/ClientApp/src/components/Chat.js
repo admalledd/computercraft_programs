@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { HubConnectionBuilder } from '@microsoft/signalr';
 
+//import Button from 'react-bootstrap/Button';
+
 import ChatWindow from './ChatWindow';
 import ChatInput from './ChatInput';
 
@@ -35,7 +37,6 @@ const Chat = () => {
             user: user,
             message: message
         };
-
         try {
             await  fetch('/api/chat/messages', { 
                 method: 'POST', 
@@ -50,8 +51,25 @@ const Chat = () => {
         }
     }
 
+    const sendHelloWorld = async () => {
+        try {
+            await  fetch('/api/chat/helloworld', { 
+                method: 'POST', 
+                body: "bleh",
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+        catch(e) {
+            console.log('Sending message failed.', e);
+        }
+    }
+
     return (
         <div>
+            <button className="btn btn-primary" onClick={sendHelloWorld}>HellWorld</button>
+            <br />
             <ChatInput sendMessage={sendMessage} />
             <hr />
             <ChatWindow chat={chat}/>

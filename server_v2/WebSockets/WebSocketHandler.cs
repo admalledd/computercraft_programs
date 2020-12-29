@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace server_v2.WebSockets
 {
+    //NB: worth mentioning/remembering: any child of WSH here is a Singleton...
     public abstract class WebSocketHandler
     {
         protected WebSocketConnectionManager WebSocketConnectionManager { get; set; }
