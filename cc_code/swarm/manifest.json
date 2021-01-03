@@ -2,7 +2,8 @@
     "files":{
         "main.lua" : "main.lua",
         "settings.lua" : "settings.lua",
-        "swarm_http.lua" : "new_http.lua"
+        "swarm_http.lua" : "new_http.lua",
+        "inspectPos.lua" : "inspectPos.lua"
     },
     "entry" : "main.lua"
 }
