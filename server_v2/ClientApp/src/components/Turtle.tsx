@@ -439,7 +439,7 @@ export default function TurtlePage({ turtle, enabled, setDisableEvents }: Turtle
 					/> */}
 				</div>
 				{/* <TurtleSwitcher /> */}
-				<CircularProgressWithLabel variant="static" value={turtle.fuel / turtle.maxFuel * 100} label={turtle.fuel} />
+				<CircularProgressWithLabel variant="determinate" value={turtle.fuel / turtle.maxFuel * 100} label={turtle.fuel} />
 			</div>
 		</>
 	);
