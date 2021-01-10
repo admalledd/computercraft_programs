@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.WebSockets;
+using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,12 +10,12 @@ namespace server_v2.Tests
 {
     public class DummyTurtle
     {
-        WebSocket ws;
+        private readonly WebSocket _ws;
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
-        public DummyTurtle(WebSocket _ws)
+        public DummyTurtle(WebSocket ws)
         {
-            ws = _ws;
-            
+            this._ws = ws;
         }
 
         public async Task Connect(string computerKey=null)
@@ -22,22 +23,27 @@ namespace server_v2.Tests
             await SendAsync(new { @type = "connecting", computer_db_key = computerKey });
         }
 
-        async Task SendAsync(string data) => await ws.SendAsync(Encoding.UTF8.GetBytes(data), WebSocketMessageType.Text, true, CancellationToken.None);
-        async Task SendAsync<T>(T data) => await SendAsync(System.Text.Json.JsonSerializer.Serialize(data));
+        private async Task SendAsync(string data) => await _ws.SendAsync(Encoding.UTF8.GetBytes(data), WebSocketMessageType.Text, true, _cts.Token);
+        public async Task SendAsync<T>(T data) => await SendAsync(System.Text.Json.JsonSerializer.Serialize(data));
 
-        public async Task ReceiveAsync()
+
+        public async Task ReceiveAsync(TimeSpan? timeout = null)
         {
+            timeout ??= TimeSpan.FromMilliseconds(2500);
+            //always have/use a CTS such that bad server code doesn't lockup the unit tests:
+            _cts.CancelAfter(timeout.Value);
+            //FIXME: this should actually take/use a time-delay CancellationToken
             var buffer = new ArraySegment<byte>(new byte[2048]);
             do
             {
-                WebSocketReceiveResult res;
                 string message;
-                using (var ms = new System.IO.MemoryStream())
+                await using (var ms = new System.IO.MemoryStream())
                 {
+                    WebSocketReceiveResult res;
                     do
                     {
-                        res = await ws.ReceiveAsync(buffer, CancellationToken.None);
-                        ms.Write(buffer.Array, buffer.Offset, res.Count);
+                        res = await _ws.ReceiveAsync(buffer, _cts.Token);
+                        ms.Write(buffer.Array!, buffer.Offset, res.Count);
                     } while (!res.EndOfMessage);
                     if (res.MessageType == WebSocketMessageType.Close)
                     {

@@ -19,12 +19,11 @@ namespace server_v2.Tests
         [TestMethod]
         public async Task EmptyConnectionTest()
         {
-            using var ds = new DummyServer();
+            await using var ds = new DummyServer();
 
             var t = await ds.NewDummyTurtle();
             await t.Connect();
-            await t.ReceiveAsync();
-            //await Task.Delay(20000);
+            await t.ReceiveAsync(); //Loops until killed 
         }
     }
 }

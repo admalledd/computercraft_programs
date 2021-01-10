@@ -15,13 +15,10 @@ namespace server_v2.Tests
 {
     public class DummyServer : IAsyncDisposable, IDisposable
     {
-        //private DbConnection _dbconnection; //sqlite will keep memory db open as long as we keep the connection to it open. So statically preserve it.
-        //private Entities.CCServerContext _CCServerContext;
-
         public TestServer TestServer;
         public Entities.CCServerContext TestContext;
-        public IServiceProvider Services => serviceScope?.ServiceProvider;
-        private IServiceScope serviceScope;
+        public IServiceProvider Services => _serviceScope?.ServiceProvider;
+        private readonly IServiceScope _serviceScope;
 
         public DummyServer()
         {
@@ -30,7 +27,7 @@ namespace server_v2.Tests
                 .UseEnvironment("Development");
 
             TestServer = new TestServer(builder);
-            serviceScope = TestServer.Services.CreateScope();
+            _serviceScope = TestServer.Services.CreateScope();
             TestContext = Services.GetRequiredService<Entities.CCServerContext>();
         }
 
