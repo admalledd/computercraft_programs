@@ -69,7 +69,7 @@ namespace server_v2.Hubs
                 if (msg.RootElement.TryGetProperty("type", out var _msg_type)){
                     if (_msg_type.GetString() == "connecting"){
                         //TODO: remove prior stale turtle brain mappings
-                        if (msg.RootElement.TryGetProperty("computer_db_key", out var _msg_t_id)){
+                        if (msg.RootElement.TryGetProperty("computer_db_key", out var _msg_t_id) && _msg_t_id.ValueKind == System.Text.Json.JsonValueKind.String){
                             // in theory, existing turtle.
                             var turtleKey = _msg_t_id.GetString();
                             if (turtleIdMap.TryGetValue(turtleKey, out var tbrain)){
