@@ -39,6 +39,9 @@ namespace server_v2.Turtle
                 // bleh
                 await Task.CompletedTask;
             }
+
+            var bleh_msg = j_data.ToString();
+            
             var data = LuaCommand.JEToObject<Models.TurtleInitModel>(j_data);
             
 

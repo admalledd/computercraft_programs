@@ -40,8 +40,8 @@ namespace server_v2.Tests
                 Scheme = "ws",
                 Path = "ws"
             }.Uri, CancellationToken.None);
-
-            return await Task.FromResult(new DummyTurtle(ws));
+            var t = ActivatorUtilities.CreateInstance<DummyTurtle>(Services, ws);
+            return await Task.FromResult(t);
         }
 
 

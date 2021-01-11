@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace server_v2.Tests
@@ -23,6 +24,8 @@ namespace server_v2.Tests
 
         public override void ConfigureServices(IServiceCollection services)
         {
+            services.AddTransient<ScriptWrapper>();
+            
             base.ConfigureServices(services);
             //With normal startup complete, replace a few things with mockable/testable instead:
 

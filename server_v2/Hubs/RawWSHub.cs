@@ -143,7 +143,15 @@ namespace server_v2.Hubs
                 if (turtleBrain.InFlightCommands.TryRemove(nonce, out var command)){
                     //TODO:: return msg to command
                     var j_get_success = msg.RootElement.TryGetProperty("data", out var j_data);
-                    await command.Receive(j_data, j_get_success, serviceScope.ServiceProvider);
+                    try
+                    {
+                        await command.Receive(j_data, j_get_success, serviceScope.ServiceProvider);
+                    }
+                    catch (Exception e)
+                    {
+                        //NB: eventally forward most of these loggers to UI
+                        logger.LogError($"error receiving/parsing a reply from a turtle! nonce: {nonce}, turtle: {turtleBrain.TurtleDBKey}",e);
+                    }
                     return;
                 }
                 else{

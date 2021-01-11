@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="5.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
+    <PackageReference Include="MoonSharp" Version="2.0.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.1.2" />
     <PackageReference Include="MSTest.TestFramework" Version="2.1.2" />
     <PackageReference Include="coverlet.collector" Version="3.0.0">
@@ -23,4 +24,12 @@
     <ProjectReference Include="..\server_v2\server_v2.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="**\*.lua" />
+    <EmbeddedResource Include="**\*.lua">
+      <!-- eventually https://github.com/dotnet/msbuild/pull/5824 will be with us and fix problems... -->
+      <Culture />
+      <WithCulture>false</WithCulture>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>
